@@ -14,7 +14,68 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      events: {
+        Row: {
+          created_at: string
+          date: string
+          description: string
+          id: string
+          location: string
+          time: string
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          date: string
+          description: string
+          id?: string
+          location: string
+          time: string
+          title: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          description?: string
+          id?: string
+          location?: string
+          time?: string
+          title?: string
+        }
+        Relationships: []
+      }
+      feedback: {
+        Row: {
+          comment: string | null
+          event_id: string
+          id: string
+          rating: number
+          submitted_at: string
+        }
+        Insert: {
+          comment?: string | null
+          event_id: string
+          id?: string
+          rating: number
+          submitted_at?: string
+        }
+        Update: {
+          comment?: string | null
+          event_id?: string
+          id?: string
+          rating?: number
+          submitted_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "feedback_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
