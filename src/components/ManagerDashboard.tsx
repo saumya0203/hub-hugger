@@ -118,7 +118,7 @@ export function ManagerDashboard() {
     }));
   };
 
-  // Process analytics data
+  // Process analytics data dynamically
   const chartData = feedbackData?.reduce((acc: any[], feedback: any) => {
     const eventTitle = feedback.events?.title || 'Unknown Event';
     const existing = acc.find(item => item.event === eventTitle);
@@ -126,7 +126,7 @@ export function ManagerDashboard() {
     if (existing) {
       existing.totalRating += feedback.rating;
       existing.count += 1;
-      existing.avgRating = existing.totalRating / existing.count;
+      existing.avgRating = Number((existing.totalRating / existing.count).toFixed(1));
     } else {
       acc.push({
         event: eventTitle,
@@ -160,6 +160,9 @@ export function ManagerDashboard() {
   const avgOverallRating = feedbackData?.length 
     ? (feedbackData.reduce((sum, f) => sum + f.rating, 0) / feedbackData.length).toFixed(1)
     : '0';
+
+  // Calculate attendance rate based on feedback participation
+  const attendanceRate = totalEvents > 0 ? Math.round((totalFeedbacks / totalEvents) * 20) : 0; // Approximate calculation
 
   const COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff7300', '#8dd1e1'];
 
@@ -307,31 +310,87 @@ export function ManagerDashboard() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 gap-4 mb-6">
+          <div className="grid grid-cols-3 gap-4 mb-6">
             <div className="text-center">
               <div className="text-3xl font-bold text-blue-400">{totalEvents}</div>
-              <div className="text-gray-400">Total Events</div>
+              <div className="text-gray-400">Events with Feedback</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl font-bold text-green-400">89%</div>
-              <div className="text-gray-400">Attendance Rate</div>
+              <div className="text-3xl font-bold text-green-400">{attendanceRate}%</div>
+              <div className="text-gray-400">Engagement Rate</div>
+            </div>
+            <div className="text-center">
+              <div className="text-3xl font-bold text-yellow-400">{avgOverallRating}</div>
+              <div className="text-gray-400">Average Rating</div>
             </div>
           </div>
 
-          {/* Upcoming Events List */}
-          <div className="space-y-2">
-            <h4 className="text-white font-medium">Upcoming Events</h4>
-            {chartData.slice(0, 3).map((event, index) => (
-              <div key={index} className="flex justify-between items-center p-3 bg-gray-700 rounded">
-                <div>
-                  <div className="text-white">{event.event}</div>
-                  <div className="text-gray-400 text-sm">2025-01-{25 + index}</div>
-                </div>
-                <div className="text-gray-300">
-                  <span className="text-sm">👥 {45 + index * 10}</span>
-                </div>
+          {/* Charts Section */}
+          {chartData.length > 0 && (
+            <div className="grid md:grid-cols-2 gap-6 mb-6">
+              {/* Average Rating Chart */}
+              <div>
+                <h4 className="text-white font-medium mb-3">Average Rating per Event</h4>
+                <ResponsiveContainer width="100%" height={200}>
+                  <BarChart data={chartData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                    <XAxis dataKey="event" stroke="#9CA3AF" fontSize={12} />
+                    <YAxis stroke="#9CA3AF" />
+                    <Tooltip 
+                      contentStyle={{ backgroundColor: '#374151', border: 'none', borderRadius: '8px' }}
+                    />
+                    <Bar dataKey="avgRating" fill="#8B5CF6" />
+                  </BarChart>
+                </ResponsiveContainer>
               </div>
-            ))}
+
+              {/* Rating Distribution */}
+              <div>
+                <h4 className="text-white font-medium mb-3">Rating Distribution</h4>
+                <ResponsiveContainer width="100%" height={200}>
+                  <PieChart>
+                    <Pie
+                      data={pieData}
+                      cx="50%"
+                      cy="50%"
+                      outerRadius={60}
+                      fill="#8884d8"
+                      dataKey="value"
+                      label
+                    >
+                      {pieData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip 
+                      contentStyle={{ backgroundColor: '#374151', border: 'none', borderRadius: '8px' }}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          )}
+
+          {/* Event Feedback Summary */}
+          <div className="space-y-2">
+            <h4 className="text-white font-medium">Event Feedback Summary</h4>
+            {chartData.length > 0 ? (
+              chartData.map((event, index) => (
+                <div key={index} className="flex justify-between items-center p-3 bg-gray-700 rounded">
+                  <div>
+                    <div className="text-white">{event.event}</div>
+                    <div className="text-gray-400 text-sm">{event.count} feedback{event.count !== 1 ? 's' : ''}</div>
+                  </div>
+                  <div className="text-gray-300">
+                    <span className="text-sm">⭐ {event.avgRating}/5</span>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="text-center py-8 text-gray-400">
+                No feedback available yet. Encourage residents to submit feedback!
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
