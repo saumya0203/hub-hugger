@@ -1,68 +1,92 @@
 import { useState } from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Calendar, BarChart3, Lightbulb, MessageSquare } from "lucide-react";
-import EventsList from "@/components/EventsList";
-import EventForm from "@/components/EventForm";
-import FeedbackForm from "@/components/FeedbackForm";
-import Analytics from "@/components/Analytics";
-import EventSuggestions from "@/components/EventSuggestions";
+import { Button } from "@/components/ui/button";
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { User, LogOut } from "lucide-react";
+import { AppSidebar } from "@/components/AppSidebar";
+import { RoleSelector } from "@/components/RoleSelector";
+import { ManagerDashboard } from "@/components/ManagerDashboard";
+import { ResidentDashboard } from "@/components/ResidentDashboard";
+
+type UserRole = "manager" | "resident" | null;
 
 const Index = () => {
-  const [activeTab, setActiveTab] = useState("events");
+  const [userRole, setUserRole] = useState<UserRole>(null);
+  const [activeItem, setActiveItem] = useState("event-hub");
+
+  if (!userRole) {
+    return <RoleSelector onRoleSelect={setUserRole} />;
+  }
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-8">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
-            VocaLinc Event Hub
-          </h1>
-          <p className="text-lg text-muted-foreground">
-            Discover, Create & Share Community Events
-          </p>
-        </div>
-
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-4 mb-8">
-            <TabsTrigger value="events" className="flex items-center gap-2">
-              <Calendar className="h-4 w-4" />
-              Events
-            </TabsTrigger>
-            <TabsTrigger value="feedback" className="flex items-center gap-2">
-              <MessageSquare className="h-4 w-4" />
-              Feedback
-            </TabsTrigger>
-            <TabsTrigger value="analytics" className="flex items-center gap-2">
-              <BarChart3 className="h-4 w-4" />
-              Analytics
-            </TabsTrigger>
-            <TabsTrigger value="suggestions" className="flex items-center gap-2">
-              <Lightbulb className="h-4 w-4" />
-              AI Suggestions
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="events" className="space-y-6">
-            <div className="grid lg:grid-cols-2 gap-8">
-              <EventsList />
-              <EventForm />
+    <SidebarProvider>
+      <div className="min-h-screen flex w-full bg-gray-900">
+        <AppSidebar activeItem={activeItem} onItemClick={setActiveItem} />
+        
+        <main className="flex-1 flex flex-col">
+          {/* Top Header */}
+          <header className="h-16 bg-gray-800 border-b border-gray-700 flex items-center justify-between px-6">
+            <div className="flex items-center gap-4">
+              <SidebarTrigger className="text-white hover:bg-gray-700" />
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 bg-purple-600 rounded-lg flex items-center justify-center">
+                  <div className="w-4 h-4 bg-white rounded-full"></div>
+                </div>
+                <div>
+                  <h1 className="text-white font-semibold">VocaLinc</h1>
+                  <p className="text-gray-400 text-sm">Voice-First Community</p>
+                </div>
+              </div>
             </div>
-          </TabsContent>
+            
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2 text-gray-300">
+                <User className="h-4 w-4" />
+                <span className="capitalize">{userRole}</span>
+              </div>
+              <Button
+                onClick={() => setUserRole(null)}
+                variant="ghost"
+                size="sm"
+                className="text-gray-300 hover:text-white hover:bg-gray-700"
+              >
+                <LogOut className="h-4 w-4 mr-2" />
+                Sign Out
+              </Button>
+            </div>
+          </header>
 
-          <TabsContent value="feedback">
-            <FeedbackForm />
-          </TabsContent>
+          {/* Main Content */}
+          <div className="flex-1 p-6">
+            {activeItem === "event-hub" && (
+              <div>
+                {/* Event Hub Header */}
+                <div className="mb-8">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="w-12 h-12 bg-purple-600 rounded-lg flex items-center justify-center">
+                      <div className="w-6 h-6 bg-white rounded-lg"></div>
+                    </div>
+                    <div>
+                      <h1 className="text-2xl font-bold text-white">Event Hub</h1>
+                      <p className="text-gray-400">Community events and engagement platform</p>
+                    </div>
+                  </div>
+                </div>
 
-          <TabsContent value="analytics">
-            <Analytics />
-          </TabsContent>
-
-          <TabsContent value="suggestions">
-            <EventSuggestions />
-          </TabsContent>
-        </Tabs>
+                {/* Role-based Content */}
+                {userRole === "manager" ? <ManagerDashboard /> : <ResidentDashboard />}
+              </div>
+            )}
+            
+            {activeItem !== "event-hub" && (
+              <div className="text-center py-12">
+                <h2 className="text-2xl font-bold text-white mb-2 capitalize">{activeItem.replace("-", " ")}</h2>
+                <p className="text-gray-400">This section is coming soon.</p>
+              </div>
+            )}
+          </div>
+        </main>
       </div>
-    </div>
+    </SidebarProvider>
   );
 };
 
