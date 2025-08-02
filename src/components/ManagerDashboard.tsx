@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Calendar, Plus, Lightbulb, BarChart3 } from "lucide-react";
+import { Calendar, Plus, Lightbulb, BarChart3, Copy } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -14,6 +14,7 @@ interface AISuggestion {
   title: string;
   description: string;
   category: string;
+  promotionalMessage: string;
 }
 
 export function ManagerDashboard() {
@@ -118,6 +119,14 @@ export function ManagerDashboard() {
     }));
   };
 
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text).then(() => {
+      toast.success("Promotional message copied to clipboard!");
+    }).catch(() => {
+      toast.error("Failed to copy to clipboard");
+    });
+  };
+
   // Process analytics data dynamically
   const chartData = feedbackData?.reduce((acc: any[], feedback: any) => {
     const eventTitle = feedback.events?.title || 'Unknown Event';
@@ -189,7 +198,7 @@ export function ManagerDashboard() {
           {aiSuggestions.length > 0 && (
             <div className="grid gap-4 mt-4">
               {aiSuggestions.map((suggestion, index) => (
-                <div key={index} className="p-4 bg-gray-700 rounded-lg">
+                <div key={index} className="p-4 bg-gray-700 rounded-lg space-y-3">
                   <div className="flex justify-between items-start">
                     <div className="flex-1">
                       <h4 className="text-white font-medium">{suggestion.title}</h4>
@@ -207,6 +216,26 @@ export function ManagerDashboard() {
                       Create Event
                     </Button>
                   </div>
+                  
+                  {/* Promotional Message Section */}
+                  {suggestion.promotionalMessage && (
+                    <div className="bg-gray-600 p-3 rounded border-l-4 border-purple-600">
+                      <div className="flex justify-between items-start gap-2">
+                        <div className="flex-1">
+                          <h5 className="text-white text-sm font-medium mb-1">📢 Promotional Message</h5>
+                          <p className="text-gray-300 text-sm leading-relaxed">{suggestion.promotionalMessage}</p>
+                        </div>
+                        <Button
+                          onClick={() => copyToClipboard(suggestion.promotionalMessage)}
+                          variant="ghost"
+                          size="sm"
+                          className="text-purple-400 hover:text-purple-300 hover:bg-purple-600/20 px-2"
+                        >
+                          <Copy className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
