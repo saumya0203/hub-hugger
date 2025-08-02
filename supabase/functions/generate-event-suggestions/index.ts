@@ -73,7 +73,19 @@ Make the suggestions diverse, engaging, and suitable for a residential community
     });
 
     if (!response.ok) {
-      throw new Error(`OpenAI API error: ${response.status}`);
+      const errorData = await response.text();
+      let errorMessage = `OpenAI API error: ${response.status}`;
+      
+      if (response.status === 429) {
+        errorMessage = 'Rate limit exceeded. Please check your OpenAI API usage limits and try again later.';
+      } else if (response.status === 401) {
+        errorMessage = 'Invalid OpenAI API key. Please check your API key configuration.';
+      } else if (response.status === 403) {
+        errorMessage = 'OpenAI API access denied. Please check your API key permissions.';
+      }
+      
+      console.error('OpenAI API Error Details:', errorData);
+      throw new Error(errorMessage);
     }
 
     const data = await response.json();
